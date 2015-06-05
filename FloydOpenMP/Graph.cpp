@@ -5,14 +5,15 @@
 #include <fstream>
 #include <stdlib.h>
 #include <string.h>
-#include <omp.h>
+#include <cassert>
 
 using namespace std;
 
 //***********************************************************************
 Graph::Graph()		// Constructor
 {
-
+	A = 0;
+	vertices = 0;
 }
 //***********************************************************************
 Graph::~Graph()		// Destructor
