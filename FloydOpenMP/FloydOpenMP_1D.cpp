@@ -71,5 +71,5 @@ int main(int argc, char* argv[])
 
 	cout << endl << "El grafo con las distancias de los caminos mas cortos es:" << endl << endl;
 	G.imprime();
-	//	cout << "Tiempo gastado= " << t << endl << endl;
+	cout << "Tiempo gastado= " << t << endl << endl;
 }
