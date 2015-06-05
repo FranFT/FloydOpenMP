@@ -12,6 +12,12 @@ using namespace std;
 //***********************************************************************
 Graph::Graph()		// Constructor
 {
+
+}
+//***********************************************************************
+Graph::~Graph()		// Destructor
+{
+	delete[] A;
 }
 //***********************************************************************
 void Graph::fija_nverts(const int nverts)
@@ -32,7 +38,7 @@ int Graph::arista(const int ptA, const int ptB)
 //***********************************************************************
 void Graph::imprime()
 {
-	int i, j, vij;
+	int i, j;
 	for (i = 0; i<vertices; i++)
 	{
 		cout << "A[" << i << ",*]= ";

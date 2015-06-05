@@ -1,9 +1,12 @@
-﻿Build started 05/06/2015 13:22:14.
+﻿Build started 05/06/2015 13:47:09.
      1>Project "C:\Users\Fran\Documents\GitHub\FloydOpenMP\FloydOpenMP\FloydOpenMP.vcxproj" on node 2 (Build target(s)).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(388,5): warning MSB8028: The intermediate directory (x64\Release\) contains files shared from another project (FloydOpenMP.vcxproj).  This can lead to incorrect clean and rebuild behavior.
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /openmp /Yu"stdafx.h" /Fp"x64\Release\FloydOpenMP_1D.pch" /Fo"x64\Release\\" /Fd"x64\Release\vc120.pdb" /Gd /TP /errorReport:prompt FloydOpenMP_1D.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /openmp /Yu"stdafx.h" /Fp"x64\Release\FloydOpenMP_1D.pch" /Fo"x64\Release\\" /Fd"x64\Release\vc120.pdb" /Gd /TP /errorReport:prompt FloydOpenMP_1D.cpp Graph.cpp
          FloydOpenMP_1D.cpp
+     1>FloydOpenMP_1D.cpp(17): warning C4101: 'thread_id' : unreferenced local variable
+         Graph.cpp
+     1>Graph.cpp(41): warning C4101: 'vij' : unreferenced local variable
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Fran\Documents\GitHub\FloydOpenMP\FloydOpenMP\x64\Release\FloydOpenMP_1D.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Fran\Documents\GitHub\FloydOpenMP\FloydOpenMP\x64\Release\FloydOpenMP_1D.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Fran\Documents\GitHub\FloydOpenMP\FloydOpenMP\x64\Release\FloydOpenMP_1D.lib" /MACHINE:X64 x64\Release\FloydOpenMP_1D.obj
          x64\Release\Graph.obj
@@ -15,4 +18,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.55
+Time Elapsed 00:00:02.76
