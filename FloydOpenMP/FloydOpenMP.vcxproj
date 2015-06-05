@@ -22,6 +22,7 @@
     <ProjectGuid>{AE77CA96-82C2-4EC9-B304-057325A76895}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>FloydOpenMP</RootNamespace>
+    <ProjectName>FloydOpenMP_1D</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -148,7 +149,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FloydOpenMP.cpp" />
+    <ClCompile Include="FloydOpenMP_1D.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

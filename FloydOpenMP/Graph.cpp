@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 using namespace std;
 
