@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 
 	// Si la entrada es correcta leemos el fichero.
 	G.lee(argv[1]);
+	G.imprime();
 
 	// Fijamos el número de filas de I que tendrá cada proceso.
 	const int num_vertices = G.get_vertices();
@@ -55,8 +56,16 @@ int main(int argc, char* argv[])
 
 	// Iniciamos la región paralela. Cada thread tendrá una copia propia de las siguientes variables:
 	//	> thread_id
-	int i, j;
-	#pragma omp parallel private(thread_id, I, i, j)
+	//	> I
+	//	> i, j, k
+	//	> i_global
+	//	> vikj
+	
+	omp_lock_t salida;
+	omp_init_lock(&salida);
+
+	int i, j, k, i_global, vikj;
+	#pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj )
 	{
 		// Fijamos el identificador de la hebra.
 		thread_id = omp_get_thread_num();
@@ -69,33 +78,73 @@ int main(int argc, char* argv[])
 			for (j = 0; j < num_vertices; j++)
 				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);
 
-		std::cout << "Thread " << thread_id << ":" << std::endl;
-		for (i = 0; i < nelementos; i++)
-			std::cout << I[i] << ", ";
+		for (k = 0; k < num_vertices; k++)
+		{
+			for (i = 0; i < num_filas; i++)
+			{
+				i_global = thread_id*num_filas + i;
 
+				for (j = 0; j < num_vertices; j++)
+				{
+					if (i_global != j && i_global != k && j != k)
+					{
+						vikj = I[i*num_vertices + k] + G.get_elemento_matriz_A(k, j);
+						vikj = std::min(vikj, I[i*num_vertices + j]);
+						G.inserta_arista(i_global, j, vikj);
+						I[i*num_vertices + j] = vikj;
+					}
+				}
+			}
+		}
+
+		omp_set_lock(&salida);
+		std::cout << "Thread " << thread_id << ":" << std::endl;
+		for (i = 0; i < num_filas; i++){
+			for (j = 0; j < num_vertices; j++)
+				std::cout << I[i*num_vertices + j] << ", ";
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+		omp_unset_lock(&salida);
 
 		// Liberamos la memoria reservada.
 		delete[] I;
 	}
-	// BUCLE PPAL DEL ALGORITMO
-	/*int i, j, k, vikj;
-	for (k = 0; k<num_vertices; k++)
-	{
-		for (i = 0; i<num_vertices; i++)
-			for (j = 0; j<num_vertices; j++)
-				if (i != j && i != k && j != k)
-				{
-					vikj = G.arista(i, k) + G.arista(k, j);
-					vikj = min(vikj, G.arista(i, j));
-					G.inserta_arista(i, j, vikj);
-				}
-	}*/
+
+	omp_destroy_lock(&salida);
 
 	// Calculamos el tiempo en segundos que tardó en finalizar el algoritmo.
-	//t = omp_get_wtime() - t;
+	t = omp_get_wtime() - t;
 
 
 	std::cout << std::endl << "El grafo con las distancias de los caminos mas cortos es:" << std::endl << std::endl;
 	G.imprime();
 	std::cout << "Tiempo gastado= " << t << std::endl << std::endl;
 }
+
+//for (k = 0; k < num_vertices; k++) {
+//	for (i = 0; i < num_filas; i++) {
+//		i_global = thread_id*num_filas + i;
+//		omp_set_lock(&salida);
+//		std::cout << "Thread " << thread_id << " i_global: " << i_global << std::endl;
+//		omp_unset_lock(&salida);
+//		for (j = 0; j < num_vertices; j++){
+//			if (i_global!=j && i_global!=k && j!=k) {
+//				//vikj = I[i*num_vertices + j] + I[k*num_vertices + j];//G.get_elemento_matriz_A(k,j);
+//				//vikj = std::min(vikj, I[i*num_vertices + j]);
+//				//G.inserta_arista(i, j, vikj);
+//				//I[i*num_vertices + j] = vikj;
+//				//std::cout << k << " " << i << " " << j << " " << vikj << std::endl;
+//			}
+//		}
+//	}
+//	//omp_set_lock(&salida);
+//	//std::cout << "Thread " << thread_id << ":" << std::endl;
+//	//for (i = 0; i < num_filas; i++){
+//	//	for (j = 0; j < num_vertices; j++)
+//	//		std::cout << I[i*num_vertices + j] << ", ";
+//	//	std::cout << std::endl;
+//	//}
+//	//std::cout << std::endl;
+//	//omp_unset_lock(&salida);
+//}
