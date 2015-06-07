@@ -35,7 +35,6 @@ int main(int argc, char* argv[])
 
 	// Si la entrada es correcta leemos el fichero.
 	G.lee(argv[1]);
-	G.imprime();
 
 	// Fijamos el número de filas de I que tendrá cada proceso.
 	const int num_vertices = G.get_vertices();
@@ -51,21 +50,20 @@ int main(int argc, char* argv[])
 	// Fijamos el número de hebras que ejecutarán el algoritmo de Floyd.
 	omp_set_num_threads(num_threads);
 
-	// Guardamos el valor del relog en segundos.
-	double t = omp_get_wtime();
-
 	// Iniciamos la región paralela. Cada thread tendrá una copia propia de las siguientes variables:
 	//	> thread_id
 	//	> I
 	//	> i, j, k
 	//	> i_global
 	//	> vikj
-	
-	omp_lock_t salida;
-	omp_init_lock(&salida);
+	int i, j, k, vikj;
+	int * i_global;
+	int * fila_i;
 
-	int i, j, k, i_global, vikj;
-	#pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj)
+	// Guardamos el valor del relog en segundos.
+	double t = omp_get_wtime();
+
+	#pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj, fila_i)
 	{
 		// Fijamos el identificador de la hebra.
 		thread_id = omp_get_thread_num();		
@@ -73,46 +71,43 @@ int main(int argc, char* argv[])
 		// Reservamos memoria para la submatriz I.
 		I = new int[nelementos];
 
+		// Reservamos memoria para los coeficientes de 'i_global',
+		// De esta manera no hay que volver a calcularlos de nuevo cada iteración k-ésima.
+		i_global = new int[num_filas];
+
+		// Reservamos memoria para el vector fila_i, que nos permitirá ahorrar cálculos.
+		// Almacena la posición de memoria que corresponde a la fila i.
+		fila_i = new int[num_filas];
+
+		// Calculamos y almacenamos dichos coeficientes.
+		for (i = 0; i < num_filas; i++){
+			i_global[i] = thread_id*num_filas + i;
+			fila_i[i] = i*num_vertices;
+		}
+
 		// Copiamos en I, la submatriz correspondiente de A.
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_vertices; j++)
-				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);//A[(thread_id*num_filas + i)*num_vertices + j];
+				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);
 
+		// Bucle principal del algoritmo.
 		for (k = 0; k < num_vertices; k++)
-		{
 			for (i = 0; i < num_filas; i++)
-			{
-				i_global = thread_id*num_filas + i;
-
 				for (j = 0; j < num_vertices; j++)
-				{
-					if (i_global != j && i_global != k && j != k)
+					if (i_global[i] != j && i_global[i] != k && j != k)
 					{
-						vikj = I[i*num_vertices + k] + G.get_elemento_matriz_A(k, j);
-						vikj = std::min(vikj, I[i*num_vertices + j]);
-						I[i*num_vertices + j] = vikj;
-						G.inserta_arista(i_global, j, vikj);
+						vikj = I[fila_i[i] + k] + G.get_elemento_matriz_A(k, j);
+						vikj = std::min(vikj, I[fila_i[i] + j]);
+						I[fila_i[i] + j] = vikj;
+						G.inserta_arista(i_global[i], j, vikj);
 						#pragma omp barrier 
 					}
-				}
-			}
-		}
-
-		omp_set_lock(&salida);
-		std::cout << "Thread " << thread_id << ":" << std::endl;
-		for (i = 0; i < num_filas; i++){
-			for (j = 0; j < num_vertices; j++)
-				std::cout << I[i*num_vertices + j] << ", ";
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-		omp_unset_lock(&salida);
 
 		// Liberamos la memoria reservada.
 		delete[] I;
+		delete[] i_global;
+		delete[] fila_i;
 	}
-
-	omp_destroy_lock(&salida);
 
 	// Calculamos el tiempo en segundos que tardó en finalizar el algoritmo.
 	t = omp_get_wtime() - t;
@@ -122,30 +117,3 @@ int main(int argc, char* argv[])
 	G.imprime();
 	std::cout << "Tiempo gastado= " << t << std::endl << std::endl;
 }
-
-//for (k = 0; k < num_vertices; k++) {
-//	for (i = 0; i < num_filas; i++) {
-//		i_global = thread_id*num_filas + i;
-//		omp_set_lock(&salida);
-//		std::cout << "Thread " << thread_id << " i_global: " << i_global << std::endl;
-//		omp_unset_lock(&salida);
-//		for (j = 0; j < num_vertices; j++){
-//			if (i_global!=j && i_global!=k && j!=k) {
-//				//vikj = I[i*num_vertices + j] + I[k*num_vertices + j];//G.get_elemento_matriz_A(k,j);
-//				//vikj = std::min(vikj, I[i*num_vertices + j]);
-//				//G.inserta_arista(i, j, vikj);
-//				//I[i*num_vertices + j] = vikj;
-//				//std::cout << k << " " << i << " " << j << " " << vikj << std::endl;
-//			}
-//		}
-//	}
-//	//omp_set_lock(&salida);
-//	//std::cout << "Thread " << thread_id << ":" << std::endl;
-//	//for (i = 0; i < num_filas; i++){
-//	//	for (j = 0; j < num_vertices; j++)
-//	//		std::cout << I[i*num_vertices + j] << ", ";
-//	//	std::cout << std::endl;
-//	//}
-//	//std::cout << std::endl;
-//	//omp_unset_lock(&salida);
-//}
