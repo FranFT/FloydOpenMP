@@ -65,10 +65,10 @@ int main(int argc, char* argv[])
 	omp_init_lock(&salida);
 
 	int i, j, k, i_global, vikj;
-	#pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj )
+	#pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj)
 	{
 		// Fijamos el identificador de la hebra.
-		thread_id = omp_get_thread_num();
+		thread_id = omp_get_thread_num();		
 
 		// Reservamos memoria para la submatriz I.
 		I = new int[nelementos];
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 		// Copiamos en I, la submatriz correspondiente de A.
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_vertices; j++)
-				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);
+				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);//A[(thread_id*num_filas + i)*num_vertices + j];
 
 		for (k = 0; k < num_vertices; k++)
 		{
@@ -90,8 +90,9 @@ int main(int argc, char* argv[])
 					{
 						vikj = I[i*num_vertices + k] + G.get_elemento_matriz_A(k, j);
 						vikj = std::min(vikj, I[i*num_vertices + j]);
-						G.inserta_arista(i_global, j, vikj);
 						I[i*num_vertices + j] = vikj;
+						G.inserta_arista(i_global, j, vikj);
+						#pragma omp barrier 
 					}
 				}
 			}
