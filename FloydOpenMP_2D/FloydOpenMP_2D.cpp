@@ -64,14 +64,14 @@ int main(int argc, char* argv[])
 	int i, j;// , k, vikj;
 	int fila_malla_threads, col_mall_threads;
 	int *i_global, *j_global;
-	//int *fila_i;
+	int **posicion;
 
 	omp_lock_t salida;
 	omp_init_lock(&salida);
 
 
 //#pragma omp parallel private(thread_id, I, i, j, k, i_global, j_global, vikj, fila_i, fila_malla_threads, col_mall_threads)
-#pragma omp parallel private(thread_id, I, i, j, fila_malla_threads, col_mall_threads, i_global, j_global)
+#pragma omp parallel private(thread_id, I, i, j, fila_malla_threads, col_mall_threads, i_global, j_global, posicion)
 	{
 		// Fijamos el identificador de la hebra.
 		thread_id = omp_get_thread_num();
@@ -88,27 +88,26 @@ int main(int argc, char* argv[])
 		i_global = new int[num_filas];
 		j_global = new int[num_filas];
 
+		// Reservamos memoria para el vector fila_i, que nos permitirá ahorrar cálculos.
+		// Almacena la posición de memoria que corresponde a la fila i.
+		posicion = new int*[num_filas];
+		for (i = 0; i < num_filas; i++)
+			posicion[i] = new int[num_filas];
+
 		for (i = 0; i < num_filas; i++){
 			i_global[i] = (fila_malla_threads*num_filas) + i;
 			j_global[i] = (col_mall_threads*num_filas) + i;
+
+			for (j = 0; j < num_filas; j++)
+				posicion[i][j] = num_filas * i + j;
 		}
-
-		// Reservamos memoria para el vector fila_i, que nos permitirá ahorrar cálculos.
-		// Almacena la posición de memoria que corresponde a la fila i.
-		//fila_i = new int[num_filas];
-
-		// Calculamos y almacenamos dichos coeficientes.
-		//for (i = 0; i < num_filas; i++){
-		//	i_global[i] = thread_id*num_filas + i;
-		//	fila_i[i] = i*num_vertices;
-		//}
 
 		// Copiamos en I, la submatriz correspondiente de A.
 		omp_set_lock(&salida);
 
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_filas; j++)
-				I[i*num_filas + j] = G.get_elemento_matriz_A(i_global[i], j_global[j]);
+				I[posicion[i][j]] = G.get_elemento_matriz_A(i_global[i], j_global[j]);
 
 		omp_unset_lock(&salida);
 
@@ -116,7 +115,7 @@ int main(int argc, char* argv[])
 		std::cout << "Thread " << thread_id << std::endl;
 		for (i = 0; i < num_filas; i++){
 			for (j = 0; j < num_filas; j++)
-				std::cout << I[i*num_filas + j] << ", ";
+				std::cout << I[posicion[i][j]] << ", ";
 			std::cout << std::endl;
 		}
 		std::cout << std::endl;
@@ -139,7 +138,10 @@ int main(int argc, char* argv[])
 		delete[] I;
 		delete[] i_global;
 		delete[] j_global;
-		//delete[] fila_i;
+		
+		for (i = 0; i < num_filas; i++)
+			delete[] posicion[i];
+		delete[] posicion;
 	}
 
 	omp_destroy_lock(&salida);
