@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 		// Copiamos en I, la submatriz correspondiente de A.
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_vertices; j++)
-				I[i*num_vertices + j] = G.get_elemento_matriz_A(thread_id*num_filas + i, j);
+				I[fila_i[i] + j] = G.get_elemento_matriz_A(i_global[i], j);
 
 		// Bucle principal del algoritmo.
 		for (k = 0; k < num_vertices; k++)
