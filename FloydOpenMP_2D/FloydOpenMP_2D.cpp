@@ -35,7 +35,6 @@ int main(int argc, char* argv[])
 
 	// Si la entrada es correcta leemos el fichero.
 	G.lee(argv[1]);
-	G.imprime();
 
 	// Fijamos el número de filas de I que tendrá cada proceso.
 	const int num_vertices = G.get_vertices();
@@ -61,7 +60,7 @@ int main(int argc, char* argv[])
 	//	> i, j, k
 	//	> i_global
 	//	> vikj
-	int i, j;// , k, vikj;
+	int i, j, k, vikj;
 	int fila_malla_threads, col_mall_threads;
 	int *i_global, *j_global;
 	int **posicion;
@@ -71,7 +70,7 @@ int main(int argc, char* argv[])
 
 
 //#pragma omp parallel private(thread_id, I, i, j, k, i_global, j_global, vikj, fila_i, fila_malla_threads, col_mall_threads)
-#pragma omp parallel private(thread_id, I, i, j, fila_malla_threads, col_mall_threads, i_global, j_global, posicion)
+#pragma omp parallel private(thread_id, I, i, j, k, vikj, fila_malla_threads, col_mall_threads, i_global, j_global, posicion)
 	{
 		// Fijamos el identificador de la hebra.
 		thread_id = omp_get_thread_num();
@@ -94,45 +93,34 @@ int main(int argc, char* argv[])
 		for (i = 0; i < num_filas; i++)
 			posicion[i] = new int[num_filas];
 
+		// Inicializamos los vectores que contienen las 'i' y 'j' globlales.
 		for (i = 0; i < num_filas; i++){
 			i_global[i] = (fila_malla_threads*num_filas) + i;
 			j_global[i] = (col_mall_threads*num_filas) + i;
-
 			for (j = 0; j < num_filas; j++)
 				posicion[i][j] = num_filas * i + j;
 		}
 
 		// Copiamos en I, la submatriz correspondiente de A.
-		omp_set_lock(&salida);
-
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_filas; j++)
 				I[posicion[i][j]] = G.get_elemento_matriz_A(i_global[i], j_global[j]);
 
-		omp_unset_lock(&salida);
-
-		omp_set_lock(&salida);
-		std::cout << "Thread " << thread_id << std::endl;
-		for (i = 0; i < num_filas; i++){
-			for (j = 0; j < num_filas; j++)
-				std::cout << I[posicion[i][j]] << ", ";
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-		omp_unset_lock(&salida);
-
-		/*// Bucle principal del algoritmo.
-		for (k = 0; k < num_vertices; k++)
-			for (i = 0; i < num_filas; i++)
-				for (j = 0; j < num_vertices; j++)
-					if (i_global[i] != j && i_global[i] != k && j != k)
+		// Bucle principal del algoritmo.
+		for (k = 0; k < num_vertices; k++){
+			for (i = 0; i < num_filas; i++){
+				for (j = 0; j < num_filas; j++){
+					if (i_global[i] != j_global[j] && i_global[i] != k && j_global[j] != k)
 					{
-						vikj = I[fila_i[i] + k] + G.get_elemento_matriz_A(k, j);
-						vikj = std::min(vikj, I[fila_i[i] + j]);
-						I[fila_i[i] + j] = vikj;
-						G.inserta_arista(i_global[i], j, vikj);
-						#pragma omp barrier 
-					}*/
+						vikj = G.get_elemento_matriz_A(i_global[i], k) + G.get_elemento_matriz_A(k, j_global[j]);
+						vikj = std::min(vikj, I[posicion[i][j]]);
+						I[posicion[i][j]] = vikj;
+						G.inserta_arista(i_global[i], j_global[j], vikj);
+					}
+				}
+				#pragma omp barrier
+			}
+		}
 
 		// Liberamos la memoria reservada.
 		delete[] I;
