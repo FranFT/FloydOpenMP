@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Floyd 1D." << std::endl;
+	std::cout << "Floyd 2D." << std::endl;
 
 	int num_threads = 0;
 	int thread_id = 0;
@@ -22,11 +22,11 @@ int main(int argc, char* argv[])
 		return(-1);
 	}
 	else {
-		// Compruebo si el número de hebras deseado es correcto (num_hebras >= 1)
+		// Compruebo si el número de hebras deseado es correcto.
 		num_threads = atoi(argv[2]);
 
-		if (num_threads < 1) {
-			std::cerr << "Numero de hebras no valido. Debe ser mayor o igual que 1." << std::endl;
+		if (num_threads < 1 || sqrt(num_threads) != ceil(sqrt(num_threads))) {
+			std::cerr << "Numero de hebras no valido. Debe ser positivo y tener raiz cuadrada entera." << std::endl;
 			return(-1);
 		}
 	}
@@ -38,19 +38,23 @@ int main(int argc, char* argv[])
 
 	// Fijamos el número de filas de I que tendrá cada proceso.
 	const int num_vertices = G.get_vertices();
-	const int num_filas = num_vertices / num_threads;
-	const int nelementos = num_filas * num_vertices;
+	const int raiz_t = sqrt(num_threads);
+	const int num_filas = num_vertices / raiz_t; 
+	const int nelementos = num_filas*num_filas;
 
 	// Si el número de vertices no es múltiplo del número de hebras se aborta.
-	if (num_vertices%num_threads != 0){
-		std::cerr << "El numero de vertices no es divisible entre numero de hebras" << std::endl;
+	if (num_vertices % raiz_t != 0){
+		std::cerr << "El numero de vertices no es divisible entre la raiz del numero de hebras" << std::endl;
 		return(-1);
 	}
 
 	// Fijamos el número de hebras que ejecutarán el algoritmo de Floyd.
 	omp_set_num_threads(num_threads);
 
-	// Iniciamos la región paralela. Cada thread tendrá una copia propia de las siguientes variables:
+	// Guardamos el valor del relog en segundos.
+	double t = omp_get_wtime();
+
+	/*// Iniciamos la región paralela. Cada thread tendrá una copia propia de las siguientes variables:
 	//	> thread_id
 	//	> I
 	//	> i, j, k
@@ -59,9 +63,6 @@ int main(int argc, char* argv[])
 	int i, j, k, vikj;
 	int * i_global;
 	int * fila_i;
-
-	// Guardamos el valor del relog en segundos.
-	double t = omp_get_wtime();
 
 #pragma omp parallel private(thread_id, I, i, j, k, i_global, vikj, fila_i)
 	{
@@ -107,7 +108,7 @@ int main(int argc, char* argv[])
 		delete[] I;
 		delete[] i_global;
 		delete[] fila_i;
-	}
+	}*/
 
 	// Calculamos el tiempo en segundos que tardó en finalizar el algoritmo.
 	t = omp_get_wtime() - t;
