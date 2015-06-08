@@ -93,16 +93,6 @@ int main(int argc, char* argv[])
 			j_global[i] = (col_mall_threads*num_filas) + i;
 		}
 
-		omp_set_lock(&salida);
-		std::cout << "Thread " << thread_id << std::endl;
-		for (i = 0; i < num_filas; i++){
-			for (j = 0; j < num_filas; j++)
-				std::cout << i_global[i] << " - " << j_global[j] << "    ";
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-		omp_unset_lock(&salida);
-
 		// Reservamos memoria para el vector fila_i, que nos permitirá ahorrar cálculos.
 		// Almacena la posición de memoria que corresponde a la fila i.
 		//fila_i = new int[num_filas];
@@ -113,21 +103,24 @@ int main(int argc, char* argv[])
 		//	fila_i[i] = i*num_vertices;
 		//}
 
-		/*// Copiamos en I, la submatriz correspondiente de A.
+		// Copiamos en I, la submatriz correspondiente de A.
+		omp_set_lock(&salida);
+
 		for (i = 0; i < num_filas; i++)
 			for (j = 0; j < num_filas; j++)
-				I[i*num_vertices + j] = G.get_elemento_matriz_A(fila_malla_threads*num_filas + i, col_mall_threads*num_filas + j);
+				I[i*num_filas + j] = G.get_elemento_matriz_A(i_global[i], j_global[j]);
 
+		omp_unset_lock(&salida);
 
 		omp_set_lock(&salida);
 		std::cout << "Thread " << thread_id << std::endl;
 		for (i = 0; i < num_filas; i++){
 			for (j = 0; j < num_filas; j++)
-				std::cout << I[i*num_vertices + j] << ", ";
+				std::cout << I[i*num_filas + j] << ", ";
 			std::cout << std::endl;
 		}
 		std::cout << std::endl;
-		omp_unset_lock(&salida);*/
+		omp_unset_lock(&salida);
 
 		/*// Bucle principal del algoritmo.
 		for (k = 0; k < num_vertices; k++)
